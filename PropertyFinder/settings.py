@@ -78,13 +78,13 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'propertydatabase',
-        'USER': 'raivokoot@propertyfinderraivo-mysqldbserver',
+        'USER': '***REMOVED***',
         'PASSWORD': '***REMOVED***',
-        'HOST': 'propertyfinderraivo-mysqldbserver.mysql.database.azure.com', # Or an IP Address that your DB is hosted on
+        'HOST': 'propertyfinder-raivo-mysqldbserver.mysql.database.azure.com', # Or an IP Address that your DB is hosted on
         'PORT': '3306',
+        'CONN_MAX_AGE': 20,
     },
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators

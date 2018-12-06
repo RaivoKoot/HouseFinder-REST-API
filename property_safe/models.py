@@ -13,6 +13,15 @@ class Address(models.Model):
     def __str__(self):
         return self.street +', '+self.postcode+', '+self.city
 
+class Image(models.Model):
+    url = models.URLField(primary_key=True)
+    rating = models.PositiveSmallIntegerField()
+    room_type = models.CharField(max_length=30)
+    furnished = models.BooleanField()
+
+    def __str__(self):
+        return self.room_type + ' ' + str(self.rating)
+
 class Property(models.Model):
     url = models.URLField()
     price = models.FloatField()
@@ -26,15 +35,8 @@ class Property(models.Model):
     date_listed = models.DateField()
     timestamp_logged = models.DateTimeField(default=timezone.now)
 
-    def __str__(self):
-        return self.address + ' | ' + str(self.price)
 
-class Image(models.Model):
-    fk_property_id = models.ForeignKey(Property, on_delete=models.CASCADE)
-    url = models.URLField()
-    rating = models.PositiveSmallIntegerField()
-    room_type = models.CharField(max_length=30)
-    furnished = models.BooleanField()
+    images = models.ManyToManyField(Image)
 
     def __str__(self):
-        return self.room_type + ' of property ' + self.fk_property_id
+        return self.title + ' | ' + str(self.price)

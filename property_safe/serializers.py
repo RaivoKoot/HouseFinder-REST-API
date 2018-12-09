@@ -19,16 +19,18 @@ class ImageSerializer(serializers.ModelSerializer):
             'furnished')
 
 class PropertySerializer(serializers.ModelSerializer):
-    bedroom_pics = serializers.IntegerField()
-    kitchen_pics = serializers.IntegerField()
-    bathroom_pics = serializers.IntegerField()
-    livingroom_pics = serializers.IntegerField()
-    exterior_pics = serializers.IntegerField()
-    other_pics = serializers.IntegerField()
+    bedroom_pics = serializers.IntegerField(read_only=True)
+    kitchen_pics = serializers.IntegerField(read_only=True)
+    bathroom_pics = serializers.IntegerField(read_only=True)
+    livingroom_pics = serializers.IntegerField(read_only=True)
+    exterior_pics = serializers.IntegerField(read_only=True)
+    other_pics = serializers.IntegerField(read_only=True)
+    address = serializers.CharField(max_length=100, read_only=True)
 
     class Meta:
         model = Property
-        fields = ('url',
+        fields = (
+            'url',
             'price',
             'bedrooms',
             'title',
@@ -44,4 +46,6 @@ class PropertySerializer(serializers.ModelSerializer):
             'bathroom_pics',
             'livingroom_pics',
             'exterior_pics',
-            'other_pics',)
+            'other_pics',
+            'images',
+            'address')

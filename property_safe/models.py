@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils import timezone
+from django.db.models import Count, Q, Prefetch
+from .business_logic.custom_querysets import PropertyQuerySet
 
 # Create your models here.
 
@@ -11,7 +13,7 @@ class Address(models.Model):
     longitude = models.DecimalField(decimal_places=8,max_digits=11)
 
     def __str__(self):
-        return self.street +', '+self.postcode+', '+self.city
+        return self.street + ', ' + self.city + ', ' + self.postcode
 
 class Image(models.Model):
     url = models.URLField(primary_key=True)
@@ -20,7 +22,7 @@ class Image(models.Model):
     furnished = models.BooleanField()
 
     def __str__(self):
-        return self.room_type + ' ' + str(self.rating)
+        return self.url
 
 class Property(models.Model):
     url = models.URLField()
@@ -35,8 +37,9 @@ class Property(models.Model):
     date_listed = models.DateField()
     timestamp_logged = models.DateTimeField(default=timezone.now)
 
-
     images = models.ManyToManyField(Image)
+
+    objects = PropertyQuerySet.as_manager()
 
     def __str__(self):
         return self.title + ' | ' + str(self.price)

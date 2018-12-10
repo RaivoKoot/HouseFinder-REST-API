@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'property_safe',
     'rest_framework',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -130,3 +131,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
     #'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
 }
+
+CRONJOBS = [
+    ('*/1 * * * *', 'property_safe.scheduled_jobs.jobs'),
+]

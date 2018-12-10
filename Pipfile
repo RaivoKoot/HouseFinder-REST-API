@@ -11,6 +11,8 @@ mysqlclient = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 requests = "*"
+geopy = "*"
+django-crontab = "*"
 
 [requires]
 python_version = "3.7"

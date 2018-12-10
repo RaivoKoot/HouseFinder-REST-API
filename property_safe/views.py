@@ -39,8 +39,14 @@ class PropertyView(viewsets.ModelViewSet):
         bathroom_pics_min = self.request.query_params.get('bathroom_pics_min', None)
         livingroom_pics_min = self.request.query_params.get('livingroom_pics_min', None)
 
+        address_comparator = self.request.query_params.get('address_comparator', None)
+        max_distance_km = self.request.query_params.get('max_distance_km', None)
+
+        # filters the queryset based off of given parameters
         queryset = queryset.filter_properties(bedrooms, price_min, price_max, \
             city, pictures_min, bedroom_pics_min, kitchen_pics_min, \
             bathroom_pics_min, livingroom_pics_min)
+
+        queryset = queryset.filter_max_distance(address_comparator, max_distance_km)
 
         return queryset

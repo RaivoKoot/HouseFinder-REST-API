@@ -13,7 +13,7 @@ class Address(models.Model):
     longitude = models.DecimalField(decimal_places=8,max_digits=11)
 
     def __str__(self):
-        return self.street + ', ' + self.city + ', ' + self.postcode
+        return self.street + ' ' + self.city + ' ' + self.postcode
 
 class Image(models.Model):
     url = models.URLField(primary_key=True)

@@ -4,10 +4,11 @@ from address_parser import parse_city
 from urllib.request import urlopen as uReq
 from bs4 import BeautifulSoup as soup
 import re
+from .secret_keys import *
 
 class PropertyPageScraper():
     BASE_URL = 'https://www.zoopla.co.uk'
-    geolocator = GoogleV3('***REMOVED***')
+    geolocator = GoogleV3(getkey_googlev3())
 
     def __init__(self):
         self.reset_data()

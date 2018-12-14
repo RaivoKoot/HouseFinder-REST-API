@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 from rest_framework import permissions
+from .settings_secret import *
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '***REMOVED***'
+SECRET_KEY = get_secretkey()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -41,7 +42,6 @@ INSTALLED_APPS = [
     'property_safe',
     'rest_framework',
     'django_crontab',
-    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -78,17 +78,7 @@ WSGI_APPLICATION = 'PropertyFinder.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'propertydatabase',
-        'USER': '***REMOVED***',
-        'PASSWORD': '***REMOVED***',
-        'HOST': 'propertyfinder-raivo-mysqldbserver.mysql.database.azure.com', # Or an IP Address that your DB is hosted on
-        'PORT': '3306',
-        'CONN_MAX_AGE': 20,
-    },
-}
+DATABASES = get_databases()
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators

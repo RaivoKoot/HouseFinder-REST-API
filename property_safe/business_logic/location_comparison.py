@@ -4,7 +4,7 @@ from geopy.distance import great_circle
 # addresses must be passed as a full string of street city postcode
 # without commas
 
-class GeoLocator():
+class DistanceCalculator():
 
     def __init__(self):
         # Nominatim object to geolocate (get lat and long of) addresses

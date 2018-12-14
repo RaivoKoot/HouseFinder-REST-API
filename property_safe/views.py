@@ -5,6 +5,8 @@ from .models import Property, Image, Address
 from .serializers import PropertySerializer, ImageSerializer, AddressSerializer
 from rest_framework.views import APIView
 
+from .test import bullshit
+
 # Create your views here.
 class AddressView(viewsets.ModelViewSet):
     queryset = Address.objects.all()
@@ -26,6 +28,7 @@ class PropertyView(viewsets.ModelViewSet):
         by filtering against query parameters in the URL.
         """
 
+        #bullshit()
         queryset = self.queryset
 
         # gets the parameter values from the request uri

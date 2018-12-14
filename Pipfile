@@ -13,6 +13,7 @@ djangorestframework-simplejwt = "*"
 requests = "*"
 geopy = "*"
 django-crontab = "*"
+address = "*"
 
 [requires]
 python_version = "3.7"

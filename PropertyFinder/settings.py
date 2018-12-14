@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'property_safe',
     'rest_framework',
     'django_crontab',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -132,6 +133,8 @@ REST_FRAMEWORK = {
     #'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
 }
 
+'''
 CRONJOBS = [
     ('*/1 * * * *', 'property_safe.scheduled_jobs.jobs'),
 ]
+'''

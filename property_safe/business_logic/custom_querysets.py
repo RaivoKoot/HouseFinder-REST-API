@@ -1,6 +1,19 @@
 from django.db.models.query import QuerySet
 from django.db.models import Count, Q, Prefetch
-from .location_comparison import GeoLocator
+from .location_comparison import DistanceCalculator
+
+class AddressQuerySet(QuerySet):
+    def has_street(self, street):
+        return self.filter(street__exact=street)
+
+    def in_city(self, city):
+        return self.filter(city__exact=city)
+
+    def has_postcode(self, postcode):
+        return self.filter(postcode__exact=postcode)
+
+    def get_specific_address(self, street, city, postcode):
+        return self.has_street(street).in_city(city).has_postcode(postcode)
 
 class PropertyQuerySet(QuerySet):
     def get_specific(self):
@@ -14,6 +27,33 @@ class PropertyQuerySet(QuerySet):
                 .prefetch_related(Prefetch('fk_address_id', to_attr='address')) \
                 .select_related('fk_address_id')
 
+    def has_bedrooms(self, num_bedrooms):
+        return self.filter(bedrooms=num_bedrooms)
+
+    def in_city(self, city):
+        return self.filter(fk_address_id__city__exact=city)
+
+    def min_price(self, price_min):
+        return self.filter(price__gte=price_min)
+
+    def max_price(self, price_max):
+        return self.filter(price__lte=price_max)
+
+    def min_pictures(self, pictures_min):
+        return self.filter(num_images__gte=pictures_min)
+
+    def min_bedroom_pics(self, bedroom_pics_min):
+        return self.filter(bedroom_pics__gte=bedroom_pics_min)
+
+    def min_kitchen_pics(self, kitchen_pics_min):
+        return self.filter(kitchen_pics__gte=kitchen_pics_min)
+
+    def min_bathroom_pics(self, bathroom_pics_min):
+        return self.filter(bathroom_pics__gte=bathroom_pics_min)
+
+    def min_livingroom_pics(self, livingroom_pics_min):
+        return self.filter(livingroom_pics__gte=livingroom_pics_min)
+
     # filters queryset by a bunch of parameters
     def filter_properties(self, bedrooms, price_min, price_max, city, \
         pictures_min, bedroom_pics_min, kitchen_pics_min, bathroom_pics_min, \
@@ -21,32 +61,32 @@ class PropertyQuerySet(QuerySet):
 
         # filter for bedrooms
         if bedrooms is not None:
-            self = self.filter(bedrooms=bedrooms)
+            self = self.has_bedrooms(bedrooms)
         # filter for city
         if city is not None:
-            self = self.filter(fk_address_id__city__exact=city)
+            self = self.in_city(city)
         # filter for price
         if price_min is not None:
-            self = self.filter(price__gte=price_min)
+            self = self.min_price(min_price)
         # filter for price
         if price_max is not None:
-            self = self.filter(price__lte=price_max)
+            self = self.max_price(price_max)
 
         # filter for picture amount
         if pictures_min is not None:
-            self = self.filter(num_images__gte=pictures_min)
+            self = self.min_pictures(pictures_min)
         # filter for bedroom pictures
         if bedroom_pics_min is not None:
-            self = self.filter(bedroom_pics__gte=bedroom_pics_min)
+            self = self.min_bedroom_pics(bedroom_pics_min)
         # filter for kitchen pictures
         if kitchen_pics_min is not None:
-            self = self.filter(kitchen_pics__gte=kitchen_pics_min)
+            self = self.min_kitchen_pics(kitchen_pics_min)
         # filter for bathroom pictures
         if bathroom_pics_min is not None:
-            self = self.filter(bathroom_pics__gte=bathroom_pics_min)
+            self =self.min_bathroom_pics(bathroom_pics_min)
         # filter for livingroom pictures
         if livingroom_pics_min is not None:
-            self = self.filter(livingroom_pics__gte=livingroom_pics_min)
+            self = self.min_livingroom_pics(livingroom_pics_min)
 
         return self
 
@@ -63,7 +103,7 @@ class PropertyQuerySet(QuerySet):
         property_list = list(self.values('id', 'fk_address_id__lattitude', 'fk_address_id__longitude'))
 
         # setupt geolocation comparators
-        geo_locator = GeoLocator()
+        geo_locator = DistanceCalculator()
         geo_locator.set_center_address(center_address)
         geo_locator.set_max_distance_km(max_distance_km)
 

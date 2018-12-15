@@ -1,4 +1,5 @@
-from .web_scraping.rentingpage_navigator import request_property_links, request_properties_data
+from .web_scraping.webscrape_properties import request_property_links, request_properties_data
+from .web_scraping.property_rater import PropertyRater
 from django.utils import timezone
 from ..models import Address, Property, Image
 
@@ -7,10 +8,15 @@ from django.core.exceptions import ObjectDoesNotExist
 
 def post_new_properties_to_database(city):
 
-    city = 'Sheffield'
     property_links = request_property_links(city)
 
-    property_data = request_properties_data(property_links)
+    properties = request_properties_data(property_links)
+
+    rater = PropertyRater()
+    for property in properties:
+        rater.rate_property(property)
+        postPropertyComplete(property)
+        print("FINISHED A PROPERTY")
 
 
 # is duplicate if there is another property with the same amount of
@@ -48,7 +54,7 @@ def postPropertyAddress(property):
     latitude = property['latitude']
     longitude = property['longitude']
 
-    address_entry = address_exists(street,city,postcode)
+    address_entry = address_exists(latitude,longitude)
 
     # if it exists
     if address_entry != -1:
@@ -58,9 +64,18 @@ def postPropertyAddress(property):
     # is the return of the post method
     return postAddress(street,city,postcode,latitude,longitude)
 
+'''
 def address_exists(street,city,postcode):
     try:
         address_entry = Address.objects.get(street=street, city=city, postcode=postcode)
+        return address_entry
+    except ObjectDoesNotExist:
+        return -1
+'''
+
+def address_exists(latitude, longitude):
+    try:
+        address_entry = Address.objects.get(lattitude=latitude, longitude=longitude)
         return address_entry
     except ObjectDoesNotExist:
         return -1
@@ -140,6 +155,8 @@ def postProperty(url, price, bedrooms, title, address_fk,
 def postPropertyComplete(property):
     # dont post
     if isDuplicate(property):
+        print('Duplicate')
+        print(property)
         return
 
     url = property['property_url']

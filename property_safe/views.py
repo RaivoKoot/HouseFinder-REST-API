@@ -28,7 +28,7 @@ class PropertyView(viewsets.ModelViewSet):
         by filtering against query parameters in the URL.
         """
 
-        #bullshit()
+        bullshit()
         queryset = self.queryset
 
         # gets the parameter values from the request uri

@@ -20,7 +20,7 @@ def getNextPageUrl(url):
 # gets all the links of all ads if you were to search zoopla for all properties
 # in a specific city.
 def request_property_links(city):
-    from rentingpage_propertylinks_scraper import scrape_property_links
+    from .webscrape_properties_findlinks import scrape_property_links
 
     ad_links = []
     zooplasearch_url = assembleUrl(city)
@@ -43,9 +43,10 @@ def request_property_links(city):
 
     return ad_links
 
-#
+# takes in a list of links to properties. Return a list of dictionaries
+# each containing data about a property
 def request_properties_data(property_links):
-    from property_info_scraper import PropertyPageScraper
+    from .webscrape_properties_parsedata import PropertyPageScraper
     page_scraper = PropertyPageScraper()
 
     propertydata_list = []
@@ -59,28 +60,3 @@ def request_properties_data(property_links):
             print(page_scraper.error_code)
 
     return propertydata_list
-
-def requestBatchOfPropertydata(city):
-
-
-    property_links = request_property_links(city)
-
-    import ctypes
-    ctypes.windll.user32.MessageBoxW(0, "Links to unique property ads have been successfully retrieved from scraping the web", "1/5", 0)
-
-    property_data = request_ordered_data(property_links)
-
-    ctypes.windll.user32.MessageBoxW(0, "Finished scraping property-details from each ad", "2/5", 0)
-
-    return property_data
-
-'''
-if __name__ == "__main__":
-    links = request_ad_links()
-
-    from listing_info_scraper import getListingInformationAsJson
-
-    json_string = getListingInformationAsJson(links[0])
-    file = open('listing_data.json', 'w')
-    file.write(json_string)
-'''

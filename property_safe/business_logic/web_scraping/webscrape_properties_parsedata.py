@@ -1,14 +1,14 @@
 from geopy.geocoders import GoogleV3
-from address_parser import parse_city
+from .address_parser import parse_city
 
 from urllib.request import urlopen as uReq
 from bs4 import BeautifulSoup as soup
 import re
-from .secret_keys import *
+#from .secret_keys import *
 
 class PropertyPageScraper():
     BASE_URL = 'https://www.zoopla.co.uk'
-    geolocator = GoogleV3(getkey_googlev3())
+    geolocator = GoogleV3('***REMOVED***')
 
     def __init__(self):
         self.reset_data()
@@ -17,17 +17,21 @@ class PropertyPageScraper():
         self.page_data = dict()
         self.error_code = 'NONE'
         self.address_json = None
+        self.address = 'default'
 
     def parse_images(self, images_container):
-        image_urls = []
+        images = []
         for container in images_container:
             image_url = container["src"]
-            image_urls.append(image_url)
 
-        self.page_data['image_urls'] = image_urls
+            image = dict()
+            image['url'] = image_url
+            images.append(image)
+
+        self.page_data['images'] = images
 
     def parse_price(self, price_container):
-        price = price_container.text#.replace('pcm','')
+        price = price_container.text.replace('pcm','')
         price = price.replace('£','').replace(',','').strip()
 
         self.page_data['price'] = price
@@ -46,12 +50,13 @@ class PropertyPageScraper():
             return
 
         self.page_data['postcode'] = 'DUMMY'
-        self.page_data['street'] = 'DUMMY'
+        self.page_data['street'] = self.address
         self.page_data['city'] = city
 
 
     def parse_geocode(self, address_container):
         address = address_container.text.replace(',','')
+        self.address = address
 
         # geolocate the address
         geolocation = self.geolocate_address(address)
@@ -92,25 +97,30 @@ class PropertyPageScraper():
 
         return location
 
-    def get_html_containers(self, page_soup):
-        # get information about property listing
-        images_container = page_soup.findAll("img",{"class": "dp-gallery__image"})
-        price_container = page_soup.find("p",{"class": "ui-pricing__main-price"})
-        title_container = page_soup.find("h1",{"class": "ui-property-summary__title ui-title-subgroup"})
-        address_container = page_soup.find("h2",{"class": "ui-property-summary__address"})
-        bedroom_num_container = page_soup.find("svg",{"class": "ui-icon icon-bed"}).find_next_sibling("span")
+    def get_html_containers(self, page_soup, url):
+        try:
+            # get information about property listing
+            images_container = page_soup.findAll("img",{"class": "dp-gallery__image"})
+            price_container = page_soup.find("p",{"class": "ui-pricing__main-price"})
+            title_container = page_soup.find("h1",{"class": "ui-property-summary__title ui-title-subgroup"})
+            address_container = page_soup.find("h2",{"class": "ui-property-summary__address"})
+            bedroom_num_container = page_soup.find("svg",{"class": "ui-icon icon-bed"}).find_next_sibling("span")
 
-        return [
-            images_container,
-            price_container,
-            title_container,
-            address_container,
-            bedroom_num_container
-            ]
+            return [
+                images_container,
+                price_container,
+                title_container,
+                address_container,
+                bedroom_num_container
+                ]
+        except:
+            self.error_code = 'one of the html elements not found in url {}'.format(url)
+            return None
 
     # returns information about one property listings as a JSON
     # attributes are title, address, price, image_urls, latitude, longitude
     def get_information(self, url_extension):
+        self.reset_data()
         url = self.BASE_URL + url_extension
 
         #open connection and grab page
@@ -120,13 +130,15 @@ class PropertyPageScraper():
         page_html = uClient.read()
         uClient.close()
 
+        # get html content as soup
         page_soup = soup(page_html, "html.parser")
 
         # containers holding the information we want
-        containers = self.get_html_containers(page_soup)
+        containers = self.get_html_containers(page_soup, url)
+        if self.error_code != 'NONE':
+            return self.page_data
 
-        self.reset_data()
-        # the information from the containers
+        # extract property information from the containers
         self.parse_data(containers[0],containers[1],containers[2],containers[3],containers[4])
 
         if self.error_code != 'NONE':

@@ -1,4 +1,6 @@
 from ..business_logic.find_new_houses import *
+from .web_scraping.webscrape_properties import *
+from .web_scraping.property_rater import PropertyRater
 
 def testAddressExists():
     print(address_exists("Nairn Street", "Sheffield", "s10"))
@@ -131,3 +133,23 @@ def testPostPropertyComplete():
     data['rating'] = '4'
 
     postPropertyComplete(data)
+
+# check, worked
+def test_webscrape():
+
+    #property_links = request_property_links("sheffield")
+    property_links = ['/to-rent/details/35990508?search_identifier=72071a68ecbd9235c5f29952ffb1e85f']
+
+
+    property_data = request_properties_data(property_links)
+
+    rater = PropertyRater()
+
+    for data in property_data:
+        rater.rate_property(data)
+        postPropertyComplete(data)
+
+from .find_new_houses import post_new_properties_to_database
+
+def test_final():
+    post_new_properties_to_database('sheffield')

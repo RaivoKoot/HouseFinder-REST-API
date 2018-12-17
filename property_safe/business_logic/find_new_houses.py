@@ -1,22 +1,98 @@
-from .web_scraping.webscrape_properties import request_property_links, request_properties_data
+from .web_scraping.webscrape_properties import WebScraper
 from .web_scraping.property_rater import PropertyRater
 from django.utils import timezone
 from ..models import Address, Property, Image
+from django.db import connection
 
 from django.core.exceptions import ObjectDoesNotExist
+import pickle
+import datetime
 
+def save_to_pickle(list):
+    now = datetime.datetime.now()
+    date_string = now.strftime("%Y-%m-%d %H-%M oclock")
+    filename = 'logged_webscrapings/property_data_' + date_string + '.pickle'
+
+    pickle_file = open(filename, "wb")
+    pickle.dump(list, pickle_file)
+    pickle_file.close()
+
+def load_from_pickle():
+    pickle_in = open("property_data.pickle","rb")
+    data = pickle.load(pickle_in)
+
+    return data
+
+def get_property_data():
+    web_scraper = WebScraper()
+
+    property_links = web_scraper.request_property_links(city)
+
+    properties = web_scraper.request_properties_data(property_links)
+    save_to_pickle(properties)
+
+    return properties
 
 def post_new_properties_to_database(city):
 
-    property_links = request_property_links(city)
+    properties = get_property_data()
 
-    properties = request_properties_data(property_links)
+    #properties = load_from_pickle()
 
+    length = len(properties)
+    counter = 0
+
+    connection.close()
     rater = PropertyRater()
     for property in properties:
-        rater.rate_property(property)
-        postPropertyComplete(property)
-        print("FINISHED A PROPERTY")
+
+        try:
+            # dont post
+            duplicate = isDuplicate(property)
+            if duplicate != -1:
+                print('Duplicate of {}'.format(duplicate))
+                print(property['property_url'])
+            else:
+                rater.rate_property(property)
+                postPropertyComplete(property)
+
+        except Exception as exception:
+            connection.close()
+
+            print(exception)
+
+
+
+        print("Finished property {} of {}".format(counter, length))
+        print()
+        print()
+        counter += 1
+
+# posts the property and all of its related entitites image and address
+def postPropertyComplete(property):
+
+    url = property['property_url']
+    price = property['price']
+    bedrooms = property['bedrooms']
+    title = property['title']
+    furnished = False #default
+    num_pictures = str(len(property['images']))
+    rating = property['rating']
+
+    address_fk = postPropertyAddress(property)
+    images = postPropertyImages(property)
+
+    postProperty(
+        url,
+        price,
+        bedrooms,
+        title,
+        address_fk,
+        furnished,
+        num_pictures,
+        rating,
+        images
+        )
 
 
 # is duplicate if there is another property with the same amount of
@@ -36,11 +112,12 @@ def isDuplicate(property):
 
     # there are no properties with the same image
     if existing_images > 0:
-        return True
+        pk = properties_same_image.first().pk
+        return pk
 
     # There are properties with the same images or not, but if so
     # then they are for marketing them with a different amount of rooms
-    return False
+    return -1
 
 
 # checks if the property's address already exists.
@@ -150,34 +227,3 @@ def postProperty(url, price, bedrooms, title, address_fk,
 
     for image in images:
         property.images.add(image)
-
-# posts the property and all of its related entitites image and address
-def postPropertyComplete(property):
-    # dont post
-    if isDuplicate(property):
-        print('Duplicate')
-        print(property)
-        return
-
-    url = property['property_url']
-    price = property['price']
-    bedrooms = property['bedrooms']
-    title = property['title']
-    furnished = False #default
-    num_pictures = str(len(property['images']))
-    rating = property['rating']
-
-    address_fk = postPropertyAddress(property)
-    images = postPropertyImages(property)
-
-    postProperty(
-        url,
-        price,
-        bedrooms,
-        title,
-        address_fk,
-        furnished,
-        num_pictures,
-        rating,
-        images
-        )

@@ -19,13 +19,8 @@ class PropertyRater():
             image['rating'] = image_rating
             property_rating += image_rating
 
-            print(image_url + ' ' + str(image_rating))
-
         property_rating /= len(property['images']) #average image rating
 
-        print('PROPERTY RATING: {}'.format(property_rating))
-        print()
-        print()
         property['rating'] = property_rating
 
     # gets the rating for a single image

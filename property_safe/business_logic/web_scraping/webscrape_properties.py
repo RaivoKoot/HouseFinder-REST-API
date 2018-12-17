@@ -1,62 +1,84 @@
-def assembleUrl(city):
-    BASE_URL = 'https://www.zoopla.co.uk/to-rent/property/city/?added=24_hours&price_frequency=per_month&q=city&results_sort=newest_listings&search_source=to-rent'
 
-    #***** parameter url codes *****#
-    page_number_code = "&pn=0"
+class WebScraper():
 
-    url = BASE_URL.replace('city', city)
-    url += page_number_code
+    def __init__(self):
+        self.BASE_URL = 'https://www.zoopla.co.uk/to-rent/property/city/?added=50_hours&price_frequency=per_month&q=city&results_sort=newest_listings&search_source=to-rent&page_size=100'
+        self.page_number_code = "&pn=00"
 
-    return url
+    def assembleUrl(self, city):
+        #BASE_URL = 'https://www.zoopla.co.uk/to-rent/property/city/?added=4_hours&price_frequency=per_month&q=city&results_sort=newest_listings&search_source=to-rent'
+        #BASE_URL = 'https://www.zoopla.co.uk/to-rent/property/city/?price_frequency=per_month&q=city&results_sort=newest_listings&search_source=to-rent&page_size=100'
 
-def getNextPageUrl(url):
-    url = list(url) # convert to list to change a single character
-    url[-1] = str(int(url[-1]) + 1) # add one to last character of url (page number)
+        url = self.BASE_URL.replace('city', city)
+        url += self.page_number_code
 
-    nextPageUrl = ''.join(url) # convert back to string
+        return url
 
-    return nextPageUrl
+    def getNextPageUrl(self, url):
+        url = url[:-2] #remove last two digits which are the page number
+        url += str(self.page_counter).zfill(2)
 
-# gets all the links of all ads if you were to search zoopla for all properties
-# in a specific city.
-def request_property_links(city):
-    from .webscrape_properties_findlinks import scrape_property_links
+        return url
 
-    ad_links = []
-    zooplasearch_url = assembleUrl(city)
+    # gets all the links of all ads if you were to search zoopla for all properties
+    # in a specific city.
+    def request_property_links(self, city):
+        from .webscrape_properties_findlinks import scrape_property_links
+        self.page_counter = 1
 
-    # iterations collect links from a rental seach on zoopla from
-    # page one to the last that has no listing on it
+        ad_links = []
+        zooplasearch_url = self.assembleUrl(city)
 
-    # each loop goes through one page of house listings. Loop n+1 checks
-    # the next page of listings. Runs until it arrives at the last page which
-    # does not have any listings on it anymore.
-    while True:
-        zooplasearch_url = getNextPageUrl(zooplasearch_url)
-        new_links = scrape_property_links(zooplasearch_url)
+        # iterations collect links from a rental seach on zoopla from
+        # page one to the last that has no listing on it
 
-        # once no more links are found we have finished our search
-        if(len(new_links) == 0):
-            break
+        # each loop goes through one page of house listings. Loop n+1 checks
+        # the next page of listings. Runs until it arrives at the last page which
+        # does not have any listings on it anymore.
+        while True:
+            zooplasearch_url = self.getNextPageUrl(zooplasearch_url)
+            new_links = scrape_property_links(zooplasearch_url)
 
-        ad_links += new_links
+            # once no more links are found we have finished our search
+            if(len(new_links) == 0):
+                break
 
-    return ad_links
+            ad_links += new_links
 
-# takes in a list of links to properties. Return a list of dictionaries
-# each containing data about a property
-def request_properties_data(property_links):
-    from .webscrape_properties_parsedata import PropertyPageScraper
-    page_scraper = PropertyPageScraper()
+            print('Links of page {} have been found. A total of {} links now'.format(self.page_counter, len(ad_links)))
+            self.page_counter += 1
 
-    propertydata_list = []
-    for property_link in property_links:
-        page_scraper.reset_data()
-        property_data = page_scraper.get_information(property_link)
+        # reverse so that the newest listing gets posted last into database
+        ad_links.reverse()
+        return ad_links
 
-        if page_scraper.error_code == 'NONE':
-            propertydata_list.append(property_data)
-        else:
-            print(page_scraper.error_code)
+    # takes in a list of links to properties. Return a list of dictionaries
+    # each containing data about a property
+    def request_properties_data(self, property_links):
+        from .webscrape_properties_parsedata import PropertyPageScraper
+        page_scraper = PropertyPageScraper()
 
-    return propertydata_list
+        counter = 0
+        propertydata_list = []
+        for property_link in property_links:
+
+            try:
+                page_scraper.reset_data()
+                property_data = page_scraper.get_information(property_link)
+
+                if page_scraper.error_code == 'NONE':
+                    propertydata_list.append(property_data)
+                else:
+                    print(page_scraper.page_data)
+                    print(page_scraper.error_code)
+
+            except Exception as exception:
+                print(exceptinon)
+
+
+            counter += 1
+            print('scraped data of property {} of {}'.format(counter, len(property_links)))
+
+
+
+        return propertydata_list

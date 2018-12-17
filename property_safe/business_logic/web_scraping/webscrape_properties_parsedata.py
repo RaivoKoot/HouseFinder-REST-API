@@ -43,10 +43,13 @@ class PropertyPageScraper():
 
     # must be called after parse_geocode because of self.address_json
     def parse_address(self):
+        if self.error_code == 'could not geocode given address':
+            return
+
         city = parse_city(self.address_json)
 
         if city == 'CITYNOTFOUND':
-            self.error_code = 'could not parse city from given address: {}'.format(address)
+            self.error_code = 'could not parse city from given address'
             return
 
         self.page_data['postcode'] = 'DUMMY'
@@ -57,11 +60,12 @@ class PropertyPageScraper():
     def parse_geocode(self, address_container):
         address = address_container.text.replace(',','')
         self.address = address
+        self.page_data['addressfull'] = address
 
         # geolocate the address
         geolocation = self.geolocate_address(address)
         if geolocation == -1:
-            self.error_code = 'could not geocode given address: {}'.format(address)
+            self.error_code = 'could not geocode given address'
             return
 
         self.address_json = geolocation.raw
@@ -80,22 +84,30 @@ class PropertyPageScraper():
 
         self.page_data['bedrooms'] = bedrooms
 
-    def parse_data(self, images_container, price_container, title_container, address_container, bedroom_num_container):
+    def parse_datelisted(self, date_listed_container):
+        self.page_data['date_listed'] = date_listed_container.text
+
+    def parse_data(self, images_container, price_container, title_container, address_container, bedroom_num_container, date_listed_container):
         self.parse_images(images_container)
         self.parse_price(price_container)
         self.parse_title(title_container)
         self.parse_bedrooms(bedroom_num_container)
         self.parse_geocode(address_container)
         self.parse_address()
+        self.parse_datelisted(date_listed_container)
 
     def geolocate_address(self, address):
-        location = self.geolocator.geocode(address)
+        try:
+            location = self.geolocator.geocode(address)
 
-        if location == None:
+            if location == None:
+                return -1
+
+            return location
+            
+        except GeocoderTimedOut as exception:
+            self.geolocator = GoogleV3('***REMOVED***')
             return -1
-
-
-        return location
 
     def get_html_containers(self, page_soup, url):
         try:
@@ -105,16 +117,18 @@ class PropertyPageScraper():
             title_container = page_soup.find("h1",{"class": "ui-property-summary__title ui-title-subgroup"})
             address_container = page_soup.find("h2",{"class": "ui-property-summary__address"})
             bedroom_num_container = page_soup.find("svg",{"class": "ui-icon icon-bed"}).find_next_sibling("span")
+            date_listed_container = page_soup.find("span",{"class": "dp-price-history__item-date"})
 
             return [
                 images_container,
                 price_container,
                 title_container,
                 address_container,
-                bedroom_num_container
+                bedroom_num_container,
+                date_listed_container
                 ]
         except:
-            self.error_code = 'one of the html elements not found in url {}'.format(url)
+            self.error_code = 'one of the html elements not found in url'
             return None
 
     # returns information about one property listings as a JSON
@@ -122,6 +136,8 @@ class PropertyPageScraper():
     def get_information(self, url_extension):
         self.reset_data()
         url = self.BASE_URL + url_extension
+
+        self.page_data['property_url'] = url # add listing url
 
         #open connection and grab page
         uClient = uReq(url)
@@ -139,12 +155,10 @@ class PropertyPageScraper():
             return self.page_data
 
         # extract property information from the containers
-        self.parse_data(containers[0],containers[1],containers[2],containers[3],containers[4])
+        self.parse_data(containers[0],containers[1],containers[2],containers[3],containers[4],containers[5])
 
         if self.error_code != 'NONE':
             print(self.error_code)
-
-        self.page_data['property_url'] = url # add listing url
 
         #import json
         #json_string = json.dumps(data)

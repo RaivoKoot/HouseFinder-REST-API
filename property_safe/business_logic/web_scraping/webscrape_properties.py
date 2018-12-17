@@ -2,7 +2,7 @@
 class WebScraper():
 
     def __init__(self):
-        self.BASE_URL = 'https://www.zoopla.co.uk/to-rent/property/city/?added=50_hours&price_frequency=per_month&q=city&results_sort=newest_listings&search_source=to-rent&page_size=100'
+        self.BASE_URL = 'https://www.zoopla.co.uk/to-rent/property/city/?added=1_hours&price_frequency=per_month&q=city&results_sort=newest_listings&search_source=to-rent&page_size=100'
         self.page_number_code = "&pn=00"
 
     def assembleUrl(self, city):
@@ -73,7 +73,7 @@ class WebScraper():
                     print(page_scraper.error_code)
 
             except Exception as exception:
-                print(exceptinon)
+                print(exception)
 
 
             counter += 1

@@ -1,14 +1,15 @@
 from geopy.geocoders import GoogleV3
+from geopy.exc import GeocoderTimedOut
 from .address_parser import parse_city
 
 from urllib.request import urlopen as uReq
 from bs4 import BeautifulSoup as soup
 import re
-#from .secret_keys import *
+from .secret_keys import *
 
 class PropertyPageScraper():
     BASE_URL = 'https://www.zoopla.co.uk'
-    geolocator = GoogleV3('***REMOVED***')
+    geolocator = GoogleV3(getkey_googlev3())
 
     def __init__(self):
         self.reset_data()
@@ -104,9 +105,9 @@ class PropertyPageScraper():
                 return -1
 
             return location
-            
+
         except GeocoderTimedOut as exception:
-            self.geolocator = GoogleV3('***REMOVED***')
+            self.geolocator = GoogleV3(getkey_googlev3())
             return -1
 
     def get_html_containers(self, page_soup, url):

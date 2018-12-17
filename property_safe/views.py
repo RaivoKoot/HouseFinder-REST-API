@@ -28,7 +28,7 @@ class PropertyView(viewsets.ModelViewSet):
         by filtering against query parameters in the URL.
         """
 
-        bullshit()
+        #bullshit()
         queryset = self.queryset
 
         # gets the parameter values from the request uri
@@ -51,5 +51,10 @@ class PropertyView(viewsets.ModelViewSet):
             bathroom_pics_min, livingroom_pics_min)
 
         queryset = queryset.filter_max_distance(address_comparator, max_distance_km)
+
+        queryset = queryset.order()
+
+        num_entries = self.request.query_params.get('num_entries', 10)
+        queryset = queryset.get_top_x_results(num_entries)
 
         return queryset

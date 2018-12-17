@@ -40,7 +40,7 @@ class PropertyQuerySet(QuerySet):
         return self.filter(price__lte=price_max)
 
     def min_pictures(self, pictures_min):
-        return self.filter(num_images__gte=pictures_min)
+        return self.filter(num_pictures__gte=pictures_min)
 
     def min_bedroom_pics(self, bedroom_pics_min):
         return self.filter(bedroom_pics__gte=bedroom_pics_min)
@@ -67,7 +67,7 @@ class PropertyQuerySet(QuerySet):
             self = self.in_city(city)
         # filter for price
         if price_min is not None:
-            self = self.min_price(min_price)
+            self = self.min_price(price_min)
         # filter for price
         if price_max is not None:
             self = self.max_price(price_max)
@@ -89,6 +89,13 @@ class PropertyQuerySet(QuerySet):
             self = self.min_livingroom_pics(livingroom_pics_min)
 
         return self
+
+    def get_top_x_results(self, x):
+        return self[:x]
+
+    def order(self):
+        return self.order_by('-rating')#.order_by('-timestamp_logged')
+
 
     # removes all propertie entries from queryset that are too far
     # away from a specified place (center_address)

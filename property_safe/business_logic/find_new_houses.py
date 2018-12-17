@@ -8,34 +8,9 @@ from django.core.exceptions import ObjectDoesNotExist
 import pickle
 import datetime
 
-def save_to_pickle(list):
-    now = datetime.datetime.now()
-    date_string = now.strftime("%Y-%m-%d %H-%M oclock")
-    filename = 'logged_webscrapings/property_data_' + date_string + '.pickle'
-
-    pickle_file = open(filename, "wb")
-    pickle.dump(list, pickle_file)
-    pickle_file.close()
-
-def load_from_pickle():
-    pickle_in = open("property_data.pickle","rb")
-    data = pickle.load(pickle_in)
-
-    return data
-
-def get_property_data():
-    web_scraper = WebScraper()
-
-    property_links = web_scraper.request_property_links(city)
-
-    properties = web_scraper.request_properties_data(property_links)
-    save_to_pickle(properties)
-
-    return properties
-
 def post_new_properties_to_database(city):
-
-    properties = get_property_data()
+    city = 'sheffield'
+    properties = scrape_new_property_data(city)
 
     #properties = load_from_pickle()
 
@@ -47,18 +22,17 @@ def post_new_properties_to_database(city):
     for property in properties:
 
         try:
-            # dont post
             duplicate = isDuplicate(property)
-            if duplicate != -1:
+            # dont post this property if duplicate already exits in database
+            if duplicate == False:
+                rater.rate_property(property)
+                post_property_including_relationships(property)
+            else:
                 print('Duplicate of {}'.format(duplicate))
                 print(property['property_url'])
-            else:
-                rater.rate_property(property)
-                postPropertyComplete(property)
 
         except Exception as exception:
-            connection.close()
-
+            connection.close() # refresh connection for when mysql connection closes
             print(exception)
 
 
@@ -68,8 +42,35 @@ def post_new_properties_to_database(city):
         print()
         counter += 1
 
+# used for debugging
+def save_to_pickle(list):
+    now = datetime.datetime.now()
+    date_string = now.strftime("%Y-%m-%d %H-%M oclock")
+    filename = 'logged_webscrapings/property_data_' + date_string + '.pickle'
+
+    pickle_file = open(filename, "wb")
+    pickle.dump(list, pickle_file)
+    pickle_file.close()
+
+# used for debugging
+def load_from_pickle():
+    pickle_in = open("property_data.pickle","rb")
+    data = pickle.load(pickle_in)
+
+    return data
+
+def scrape_new_property_data(city):
+    web_scraper = WebScraper()
+
+    property_links = web_scraper.request_property_links(city)
+
+    properties = web_scraper.request_properties_data(property_links)
+    save_to_pickle(properties)
+
+    return properties
+
 # posts the property and all of its related entitites image and address
-def postPropertyComplete(property):
+def post_property_including_relationships(property):
 
     url = property['property_url']
     price = property['price']
@@ -117,7 +118,7 @@ def isDuplicate(property):
 
     # There are properties with the same images or not, but if so
     # then they are for marketing them with a different amount of rooms
-    return -1
+    return False
 
 
 # checks if the property's address already exists.
@@ -133,13 +134,11 @@ def postPropertyAddress(property):
 
     address_entry = address_exists(latitude,longitude)
 
-    # if it exists
-    if address_entry != -1:
-        return address_entry
+    # if it does not exist yet then post it and get the new Address object
+    if address_entry == 'address does not exist yet':
+        address_entry = postAddress(street,city,postcode,latitude,longitude)
 
-    # if it does not exist, post it and return primary key, which
-    # is the return of the post method
-    return postAddress(street,city,postcode,latitude,longitude)
+    return address_entry
 
 '''
 def address_exists(street,city,postcode):
@@ -150,14 +149,16 @@ def address_exists(street,city,postcode):
         return -1
 '''
 
+# checks if a given address already exist in database
+# and returns the Address object if it does, -1 otherwise
 def address_exists(latitude, longitude):
     try:
         address_entry = Address.objects.get(lattitude=latitude, longitude=longitude)
         return address_entry
     except ObjectDoesNotExist:
-        return -1
+        return 'address does not exist yet'
 
-# posts a new address using the given parameters and returns its pk
+# posts a new address entry using the given parameters and returns its pk
 def postAddress(street, city, postcode, latitude, longitude):
     address = Address(
                 street=street,
@@ -170,23 +171,33 @@ def postAddress(street, city, postcode, latitude, longitude):
 
     return address
 
+# for each image of the property, posts a new Image entry
 def postPropertyImages(property):
     images = property['images']
     image_entries = []
 
     for image in images:
-        url = image['url']
-        image_entry = image_exists(url)
-
-        # if it does not exists
-        if image_entry == 'image not yet in database':
-            rating = image['rating']
-            image_entry = postImage(url, rating)
+        image_entry = post_image(image)
 
         image_entries.append(image_entry)
 
     return image_entries
 
+# posts an image if it does not exist already and returns
+# the image object
+def post_image(image):
+    url = image['url']
+    image_entry = image_exists(url)
+
+    # if it does not exists
+    if image_entry == 'image not yet in database':
+        rating = image['rating']
+        image_entry = postImage(url, rating)
+
+    return image_entry
+
+# checks if an image already exists in database.
+# If it does, returns the Image object
 def image_exists(url):
     try:
         image_entry = Image.objects.get(url=url)
@@ -194,6 +205,7 @@ def image_exists(url):
     except ObjectDoesNotExist:
         return 'image not yet in database'
 
+# POSTs an image to database and returns the Image object
 def postImage(url, rating, room_type='UNKNOWN', furnished='False'):
     image = Image(
                 url=url,

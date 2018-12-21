@@ -39,9 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'property_safe',
+
+    #addons
     'rest_framework',
+
+    #custom
+    'property_safe',
     'django_crontab',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +57,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    #custom
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'PropertyFinder.urls'
@@ -123,6 +132,12 @@ REST_FRAMEWORK = {
     #'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
 }
 
+# Allows http requests to be made from all ports
+# only used for testing
+#CORS_ORIGIN_ALLOW_ALL = True
+
+
+# automation definition, telling the server to run those jobs/scripts every hour
 '''
 CRONJOBS = [
     ('*/1 * * * *', 'property_safe.scheduled_jobs.jobs'),

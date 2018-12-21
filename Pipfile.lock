@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "576b1b6101f4a5d8eb37b5032014d42f5e591a5b8c191bf93c8916b888e5a9fb"
+            "sha256": "632bcb6d36e8ded7e1cc79a90bae18a8827249d33020d184d22b011577190293"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -69,6 +69,14 @@
             "index": "pypi",
             "version": "==2.1.4"
         },
+        "django-cors-headers": {
+            "hashes": [
+                "sha256:5545009c9b233ea7e70da7dbab7cb1c12afa01279895086f98ec243d7eab46fa",
+                "sha256:c4c2ee97139d18541a1be7d96fe337d1694623816d83f53cb7c00da9b94acae1"
+            ],
+            "index": "pypi",
+            "version": "==2.4.0"
+        },
         "django-crontab": {
             "hashes": [
                 "sha256:1201810a212460aaaa48eb6a766738740daf42c1a4f6aafecfb1525036929236"
@@ -100,11 +108,11 @@
         },
         "geopy": {
             "hashes": [
-                "sha256:e448b41932985d71329d6caba5d95be53207c49b74e88acd651fb7b9c6896750",
-                "sha256:e5442fd5865d1d8da0a028f5899cc696664b1c9adafb82dc2e7be85d40df9a6a"
+                "sha256:07a21f699b3daaef726de7278f5d65f944609306ab8a389e9f56e09abf86eac8",
+                "sha256:c856a451196edde02ce51924bb466c2ee7c241a7019af0cb5773c53bbef5ea16"
             ],
             "index": "pypi",
-            "version": "==1.18.0"
+            "version": "==1.18.1"
         },
         "idna": {
             "hashes": [

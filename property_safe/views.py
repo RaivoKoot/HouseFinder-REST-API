@@ -46,9 +46,16 @@ class PropertyView(viewsets.ModelViewSet):
         max_distance_km = self.request.query_params.get('max_distance_km', None)
 
         # filters the queryset based off of given parameters
-        queryset = queryset.filter_properties(bedrooms, price_min, price_max, \
-            city, pictures_min, bedroom_pics_min, kitchen_pics_min, \
-            bathroom_pics_min, livingroom_pics_min)
+        queryset = queryset.filter_properties(
+            bedrooms,
+            price_min,
+            price_max,
+            city,
+            pictures_min,
+            bedroom_pics_min,
+            kitchen_pics_min,
+            bathroom_pics_min,
+            livingroom_pics_min)
 
         queryset = queryset.filter_max_distance(address_comparator, max_distance_km)
 
